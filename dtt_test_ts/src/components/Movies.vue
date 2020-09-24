@@ -63,7 +63,7 @@ export default class Movies extends Vue {
     handleSearch(searchInput, type) {
         this.search = searchInput;
         this.searchSeries = type === "series";
-        let apiUrl : string = this.getApiUrl(this.search, this.searchSeries);
+        let apiUrl : string = this.buildApiUrl(this.search, this.searchSeries);
         let query : string = this.search === "" ? "" : `query=${this.search}&`
 
         axios.get(`${apiUrl}?${query}api_key=${this.apiKey}`)
@@ -72,7 +72,7 @@ export default class Movies extends Vue {
         this.recommended = this.search === "";
     }
 
-    getApiUrl(search : String, series: boolean) : string {
+    buildApiUrl(search : String, series: boolean) : string {
         let resource : string = series ? "tv" : "movie";
         let api : string = search === "" ? "trending" : "search";
         let resourceSubPath : string = search === "" ? "day" : "";
