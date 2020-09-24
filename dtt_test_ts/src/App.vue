@@ -8,7 +8,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Movies from './components/Movies.vue';
-import Navbar from "./components/Navbar.vue"
+import Navbar from "./components/Navbar.vue";
 import axios from "axios";
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
@@ -19,12 +19,9 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
   components: {
     Movies,
     Navbar
-
   },
 
 })
-
-
 
 export default class App extends Vue {}
 </script>

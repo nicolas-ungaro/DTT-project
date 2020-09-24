@@ -1,20 +1,7 @@
 <template>
 <div class="container">
-    <!-- Input for search -->
-    <div class="input-div">
-        <input placeholder="Search by title..." class="input" 
-        v-model ="search" v-on:click="search = '' " type="text">
-        <img class="search-btn" src="../imgs/search-13-32.png" alt="" v-on:click = getMoviesBySearch ><img >
-    </div>
-    <!-- Toggle Button -->
-    <div class="d-flex justify-content-center switch">
-        <p>Movies</p>
-        <div v-on:click="switchToggle();getMoviesBySearch()" class="toggle-button" id="toggle-btn">
-            <div id = "switcher" class="inner-circle"></div>
-        </div>
-        <p>TV</p>
-    </div>
-      <!-- Loading gif -->
+    <Search v-on:send-search-input="handleSearch" v-on:send-type-toggle="handleToggle"/>
+    <!-- Loading gif -->
     <div class="loading-img" v-if="movies.length == 0">
         <img src="../imgs/ajax-loader.gif" alt="">
     </div>
@@ -53,85 +40,55 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import axios from "axios";
+import Search from './Search.vue';
 
-@Component
+@Component({
+  name: 'Movies',
+  components: {
+    Search,
+  }
+})
 export default class Movies extends Vue {
+    apiKey: string = "0567971fd9aa85a3b7dcd6d28eeabd21";
+    urlImg: String = "https://image.tmdb.org/t/p/w200/"
 
-urlImg: String = "https://image.tmdb.org/t/p/w200/"
+    //Create array to store the movie data
+    movies: Array<object> = []
+    search: string = ""
+    sort: string = ""
+    searchSeries: boolean = false
+    recommended: boolean = true
 
-//Create array to store the movie data
-movies: Array<object> = []
-search: String = ""
-sort: String = ""
-searchSeries: boolean = false
-recommended: boolean = true
+    // Function to call API
+    handleSearch(searchInput, type) {
+        this.search = searchInput;
+        this.searchSeries = type === "series";
+        let apiUrl : string = this.getApiUrl(this.search, this.searchSeries);
+        let query : string = this.search === "" ? "" : `query=${this.search}&`
 
-// Function to call API
-getMoviesBySearch(){
-
-    if(!this.search){
-        if(!this.searchSeries){
-        axios.get("https://api.themoviedb.org/3/trending/movie/day?api_key=0567971fd9aa85a3b7dcd6d28eeabd21")
-        .then(response => this.movies = response.data.results)
-        .catch(err=> console.log(err))
-        this.recommended = true;
-    }
-        if(this.searchSeries){
-        axios.get("https://api.themoviedb.org/3/trending/tv/day?api_key=0567971fd9aa85a3b7dcd6d28eeabd21")
-        .then(response => this.movies = response.data.results)
-        .catch(err=> console.log(err));
-        this.recommended = true;
-        }
-
+        axios.get(`${apiUrl}?${query}api_key=${this.apiKey}`)
+            .then(response => this.movies = response.data.results)
+            .catch(err=> console.log(err))
+        this.recommended = this.search === "";
     }
 
+    getApiUrl(search : String, series: boolean) : string {
+        let resource : string = series ? "tv" : "movie";
+        let api : string = search === "" ? "trending" : "search";
+        let resourceSubPath : string = search === "" ? "day" : "";
 
-    if(this.search){
-
-        if(!this.searchSeries){
-        axios.get("https://api.themoviedb.org/3/search/movie?query="+ this.search + " &api_key=0567971fd9aa85a3b7dcd6d28eeabd21&language=en-US&page=1&include_adult=false")
-        .then(response => this.movies = response.data.results)
-        .catch(err=> console.log(err));
-        this.recommended = false;
-    
-    }
-     else{
-        axios.get("https://api.themoviedb.org/3/search/tv?query="+ this.search + " &api_key=0567971fd9aa85a3b7dcd6d28eeabd21&language=en-US&page=1&include_adult=false")
-        .then(response => this.movies = response.data.results)
-        .catch(err=> console.log(err))
-        this.recommended = false;
-    }
-    }
-}
-
-// Function to switch toggle (series ans movies)
-switchToggle(){
-    const element: HTMLElement = document.getElementById("switcher");
-    const toggleBtn: HTMLElement = document.getElementById("toggle-btn")
-    if(element.classList.contains("series")){
-        element.classList.remove("series");
-        this.searchSeries = !this.searchSeries;
-        toggleBtn.classList.remove("diff-bg")
-
+        return `https://api.themoviedb.org/3/${api}/${resource}/${resourceSubPath}`;
     }
 
-    else{
-        element.classList.add("series");
-        this.searchSeries = !this.searchSeries;
-        toggleBtn.classList.add("diff-bg")
+    // Function to switch toggle (series ans movies)
+    handleToggle(type) {
+        this.handleSearch(this.search, type);
     }
-    
-}
 
-// Funtion to sort by year
-
-
-
-// Calling function to get the recommended movies
-created(){
-   this.getMoviesBySearch();
-}
-
+    // Calling function to get the recommended movies
+    created() {
+        this.handleSearch(this.search, this.searchSeries ? "series" : "movies");
+    }
 }
 
 </script>
